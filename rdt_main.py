@@ -75,7 +75,6 @@ while True:
     server.processData()
     serverToClientChannel.processData()
 
-
     # show the data received so far
     print("Main--------------------------------------------")
     dataReceivedFromClient = server.getDataReceived()
