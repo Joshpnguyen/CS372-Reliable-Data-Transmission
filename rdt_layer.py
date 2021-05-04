@@ -173,10 +173,12 @@ class RDTLayer(object):
         # This is where a majority of your logic will be implemented
         print('processReceive(): Complete this...')
 
-        # if not listIncomingSegments:  # if received nothing, return
-        #     return
+        if not listIncomingSegments:  # if received nothing, return
+            return
 
         data = [x for x in listIncomingSegments if x.seqnum != -1]
+
+        data.sort(key=lambda x: x.seqnum)  # sort segments in order by seqnum
 
         for seg in data:
             print("Received Segment:", seg.payload)
@@ -201,3 +203,7 @@ class RDTLayer(object):
 
             # Use the unreliable sendChannel to send the ack packet
             self.sendChannel.send(segmentAck)
+
+    def countSegmentTimeouts(self):
+        # returns the number of segment timeouts
+        return 0
