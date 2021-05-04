@@ -48,6 +48,8 @@ class RDTLayer(object):
         self.currentIteration = 0
         # Add items as needed
         self.nextSeqNum = 0
+        self.lastAck = 0
+        self.dataReceived = ''
 
     # ################################################################################################################ #
     # setSendChannel()                                                                                                 #
@@ -97,7 +99,7 @@ class RDTLayer(object):
         print('getDataReceived(): Complete this...')
 
         # ############################################################################################################ #
-        return ""
+        return self.dataReceived
 
     # ################################################################################################################ #
     # processData()                                                                                                    #
@@ -137,6 +139,10 @@ class RDTLayer(object):
             # The data is just part of the entire string that you are trying to send.
             # The seqnum is the sequence number for the segment (in character number, not bytes)
 
+            if self.dataToSend == '':  # if no data because server, break from loop
+                print("I am the server, I don't send data.")
+                break
+
             seqnum = self.nextSeqNum
             data = self.dataToSend[self.nextSeqNum:self.nextSeqNum+self.DATA_LENGTH]
 
@@ -148,6 +154,7 @@ class RDTLayer(object):
             # Use the unreliable sendChannel to send the segment
             self.sendChannel.send(segmentSend)
 
+
     # ################################################################################################################ #
     # processReceive()                                                                                                 #
     #                                                                                                                  #
@@ -157,7 +164,6 @@ class RDTLayer(object):
     #                                                                                                                  #
     # ################################################################################################################ #
     def processReceiveAndSendRespond(self):
-        segmentAck = Segment()                  # Segment acknowledging packet(s) received
 
         # This call returns a list of incoming segments (see Segment class)...
         listIncomingSegments = self.receiveChannel.receive()
@@ -167,10 +173,14 @@ class RDTLayer(object):
         # This is where a majority of your logic will be implemented
         print('processReceive(): Complete this...')
 
-        data_list = list(listIncomingSegments)
-        data = [x.payload for x in listIncomingSegments]
-        print(data)
+        # if not listIncomingSegments:  # if received nothing, return
+        #     return
 
+        data = [x for x in listIncomingSegments if x.seqnum != -1]
+
+        for seg in data:
+            print("Received Segment:", seg.payload)
+            self.dataReceived = self.dataReceived + seg.payload
 
         # ############################################################################################################ #
         # How do you respond to what you have received?
@@ -179,13 +189,15 @@ class RDTLayer(object):
 
         # Somewhere in here you will be setting the contents of the ack segments to send.
         # The goal is to employ cumulative ack, just like TCP does...
-        acknum = "0"
 
+        for x in data:
+            segmentAck = Segment()  # Segment acknowledging packet(s) received
+            acknum = x.seqnum + 4
 
-        # ############################################################################################################ #
-        # Display response segment
-        segmentAck.setAck(acknum)
-        print("Sending ack: ", segmentAck.to_string())
+            # ######################################################################################################
+            # Display response segment
+            segmentAck.setAck(acknum)
+            print("Sending ack: ", segmentAck.to_string())
 
-        # Use the unreliable sendChannel to send the ack packet
-        self.sendChannel.send(segmentAck)
+            # Use the unreliable sendChannel to send the ack packet
+            self.sendChannel.send(segmentAck)
