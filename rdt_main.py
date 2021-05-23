@@ -43,16 +43,16 @@ server = RDTLayer()
 
 # Start with a reliable channel (all flags false)
 # As you create your rdt algorithm for send and receive, turn these on.
-outOfOrder = False
-dropPackets = False
-delayPackets = False
-dataErrors = False
+outOfOrder = True
+dropPackets = True
+delayPackets = True
+dataErrors = True
 
 # Create unreliable communication channels
 clientToServerChannel = UnreliableChannel(outOfOrder,dropPackets,delayPackets,dataErrors)
 serverToClientChannel = UnreliableChannel(outOfOrder,dropPackets,delayPackets,dataErrors)
 
-# Create client and server that connect to unreliable channels
+# Creat client and server that connect to unreliable channels
 client.setSendChannel(clientToServerChannel)
 client.setReceiveChannel(serverToClientChannel)
 server.setSendChannel(serverToClientChannel)
@@ -75,6 +75,7 @@ while True:
     server.processData()
     serverToClientChannel.processData()
 
+
     # show the data received so far
     print("Main--------------------------------------------")
     dataReceivedFromClient = server.getDataReceived()
@@ -84,7 +85,7 @@ while True:
         print('$$$$$$$$ ALL DATA RECEIVED $$$$$$$$')
         break
 
-    # time.sleep(0.1)
+    #time.sleep(0.1)
     # input("Press enter to continue...")
 
 print("countTotalDataPackets: {0}".format(clientToServerChannel.countTotalDataPackets))
@@ -96,6 +97,6 @@ print("countDroppedDataPackets: {0}".format(clientToServerChannel.countDroppedPa
 print("countAckPackets: {0}".format(serverToClientChannel.countAckPackets))
 print("countDroppedAckPackets: {0}".format(serverToClientChannel.countDroppedPackets))
 
-# print("# segment timeouts: {0}".format(client.countSegmentTimeouts))
+print("# segment timeouts: {0}".format(client.countSegmentTimeouts()))
 
 print("TOTAL ITERATIONS: {0}".format(loopIter))
